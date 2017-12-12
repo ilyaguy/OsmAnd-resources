@@ -146,7 +146,7 @@ string('minutes.ogg', 'хвилин').
 
 %% COMMAND BUILDING / WORD ORDER
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-route_new_calc(Dist, Time) -- ['route_is.ogg', D, ', ', 'time.ogg', T, '. '] :- distance(Dist) -- D, time(Time) -- T.
+route_new_calc(Dist, Time) -- ['route_is.ogg', 'around.ogg', D, ', ', 'time.ogg', T, '. '] :- distance(Dist) -- D, time(Time) -- T.
 route_recalc(Dist, Time) -- ['route_calculate.ogg'] :- appMode('car').
 route_recalc(Dist, Time) -- ['route_calculate.ogg', ', ', 'distance.ogg', D, 'and.ogg', 'time.ogg', T] :- distance(Dist) -- D, time(Time) -- T.
 
@@ -299,6 +299,7 @@ toexitn(16, 'exit16.ogg').
 toexitn(17, 'exit17.ogg').
 
 
+
 %% command main method
 %% if you are familar with Prolog you can input specific to the whole mechanism,
 %% by adding exception cases.
@@ -328,8 +329,10 @@ fnumber(X, Ogg) :- X > 2, num_atom(X, A), atom_concat(A, '.ogg', Ogg).
 hours(S, []) :- S < 60.
 hours(S, [Ogg, Hs]) :- H is S div 60, plural_hs(H, Hs), fnumber(H, Ogg).
 time(Sec) -- ['less_a_minute.ogg'] :- Sec < 30.
-time(Sec) -- [H] :- tts, S is round(60.0), hours(S, H), St is S mod 60, St = 0.
+
+% time(Sec) -- [H] :- tts, S is round(60.0), hours(S, H), St is S mod 60, St = 0.
 time(Sec) -- [H, Ogg, Mn] :- tts, S is round(Sec/60.0), hours(S, H), St is S mod 60, plural_mn(St, Mn), fnumber(St, Ogg).
+
 time(Sec) -- [Ogg, Mn] :- not(tts), Sec < 300, St is 60, plural_mn(St, Mn), fnumber(St, Ogg).
 time(Sec) -- [H, Ogg, Mn] :- not(tts), S is round(Sec/300.0) * 5, St is S mod 60, St > 0, hours(S, H), plural_mn(St, Mn), fnumber(St, Ogg).
 time(Sec) -- [H] :- not(tts), S is round(Sec/300.0) * 5, hours(S, H), St is S mod 60.
@@ -390,10 +393,17 @@ interval(T, St, End, Step) :- interval(Init, St, End, Step), T is Init + Step, (
 interval(X, St, End) :- interval(X, St, End, 1).
 
 string(Ogg, B) :- voice_generation, interval(X, 1, 2), atom_number(B, X), atom_concat(B, 'm-n', A), atom_concat(A, '.ogg', Ogg).
+
 %string('1m-n.ogg', '1').
-% string('1f-n.ogg', '1'). %??
+string('1f-n.ogg', 'одна'). %??
+% string('4f-n.ogg', 'чотири ').
 % string('2m-n.ogg', '2').
-% string('2f-n.ogg', '2'). %??
+string('2f-n.ogg', 'дві '). %??
+
+string('2minutes.ogg', 'хвилини ').
+string('5minutes.ogg', 'хвилин ').
+string('2hours.ogg', 'години ').
+string('5hours.ogg', 'годин ').
 
 string(Ogg, A) :- voice_generation, interval(X, 3, 19), atom_number(A, X), atom_concat(A, '.ogg', Ogg).
 string(Ogg, A) :- voice_generation, interval(X, 20, 95, 5), atom_number(A, X), atom_concat(A, '.ogg', Ogg).
