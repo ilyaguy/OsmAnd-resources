@@ -9,6 +9,14 @@ voice :- version(X), X < 99.
 
 language('uk').
 
+%% Constant for debug.
+appMode('bike').
+google_gen :- false.
+measure('km-m').
+voice_generation :- false.
+num_atom(A, B) :- A=B.
+%% End constant.
+
 % IMPLEMENTED (X) or MISSING ( ) FEATURES, (N/A) if not needed in this language:
 %
 % (X) Basic navigation prompts: route (re)calculated (with distance and time support), turns, roundabouts, u-turns, straight/follow, arrival
@@ -146,7 +154,7 @@ string('minutes.ogg', 'хвилин').
 
 %% COMMAND BUILDING / WORD ORDER
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-route_new_calc(Dist, Time) -- ['route_is.ogg', 'around.ogg', D, ', ', 'time.ogg', T, '. '] :- distance(Dist) -- D, time(Time) -- T.
+route_new_calc(Dist, Time) -- ['route_is.ogg', 'around.ogg', D, '. ', 'time.ogg', T, '. '] :- distance(Dist) -- D, time(Time) -- T.
 route_recalc(Dist, Time) -- ['route_calculate.ogg'] :- appMode('car').
 route_recalc(Dist, Time) -- ['route_calculate.ogg', ', ', 'distance.ogg', D, 'and.ogg', 'time.ogg', T] :- distance(Dist) -- D, time(Time) -- T.
 
@@ -322,17 +330,22 @@ pnumber(X, Y) :- tts, !, num_atom(X, Y).
 % pnumber(X, Ogg) :- num_atom(X, A), atom_concat(A, '.ogg', Ogg).
 pnumber(X, Ogg) :- X < 3, num_atom(X, B), atom_concat(B, 'm-n', A), atom_concat(A, '.ogg', Ogg).
 pnumber(X, Ogg) :- X > 2, num_atom(X, A), atom_concat(A, '.ogg', Ogg).
+
+fnumber(X, Ogg) :- tts, !, num_atom(X, Y).
 fnumber(X, Ogg) :- X < 3, num_atom(X, B), atom_concat(B, 'f-n', A), atom_concat(A, '.ogg', Ogg).
 fnumber(X, Ogg) :- X > 2, num_atom(X, A), atom_concat(A, '.ogg', Ogg).
 
 % time measure
 hours(S, []) :- S < 60.
-hours(S, [Ogg, Hs]) :- H is S div 60, plural_hs(H, Hs), fnumber(H, Ogg).
+hours(S, [Ogg, Hs]) :- H is S div 60, plural_hs(H, Hs), dist(H, Ogg).
+
 time(Sec) -- ['less_a_minute.ogg'] :- Sec < 30.
 
-% time(Sec) -- [H] :- tts, S is round(60.0), hours(S, H), St is S mod 60, St = 0.
-time(Sec) -- [H, Ogg, Mn] :- tts, S is round(Sec/60.0), hours(S, H), St is S mod 60, plural_mn(St, Mn), fnumber(St, Ogg).
+% tts
+time(Sec) -- [H] :- tts, S is round(Sec/60.0), hours(S, H), St is S mod 60, St = 0.
+time(Sec) -- [H, Ogg, Mn] :- tts, S is round(Sec/60.0), hours(S, H), St is S mod 60, plural_mn(St, Mn), dist(St, Ogg).
 
+% non-tts
 time(Sec) -- [Ogg, Mn] :- not(tts), Sec < 300, St is 60, plural_mn(St, Mn), fnumber(St, Ogg).
 time(Sec) -- [H, Ogg, Mn] :- not(tts), S is round(Sec/300.0) * 5, St is S mod 60, St > 0, hours(S, H), plural_mn(St, Mn), fnumber(St, Ogg).
 time(Sec) -- [H] :- not(tts), S is round(Sec/300.0) * 5, hours(S, H), St is S mod 60.
@@ -394,14 +407,15 @@ interval(X, St, End) :- interval(X, St, End, 1).
 
 string(Ogg, B) :- voice_generation, interval(X, 1, 2), atom_number(B, X), atom_concat(B, 'm-n', A), atom_concat(A, '.ogg', Ogg).
 
-%string('1m-n.ogg', '1').
-string('1f-n.ogg', 'одна'). %??
+% string('1m-n.ogg', '1').
+% string('1f-n.ogg', 'одна'). %??
 % string('4f-n.ogg', 'чотири ').
 % string('2m-n.ogg', '2').
-string('2f-n.ogg', 'дві '). %??
+% string('2f-n.ogg', 'дві '). %??
 
 string('2minutes.ogg', 'хвилини ').
 string('5minutes.ogg', 'хвилин ').
+string('2hours.ogg', 'години ').
 string('2hours.ogg', 'години ').
 string('5hours.ogg', 'годин ').
 
